@@ -4,7 +4,7 @@ const DIVIDER = "~"
 const SEQUENCE_SYMBOL = "$";
 const PROGRESSION_SYMBOL = "#";
 
-const baseToNumberCache: Map<string, number> = new Map();
+const baseToNumberCache: Map<string, number> = new Map(ALPHABET.map((digit, index) => [digit, index]));
 const numberToBaseCache: Map<number, string> = new Map();
 
 function findDuplicateSequences(numbers: number[]) {
@@ -42,14 +42,14 @@ function findDuplicateSequences(numbers: number[]) {
 function findProgressionSequences(numbers: number[]) {
   const sequences: Map<number, { start: number, step: number, end: number }> = new Map();
 
-  let start = 0;
+  let start = 0, step, end;
   while (start < numbers.length - 2) {
-    let step = numbers[start + 1] - numbers[start];
+    step = numbers[start + 1] - numbers[start];
     if (step === 0) {
       start++;
       continue;
     }
-    let end = start + 1;
+    end = start + 1;
     while (
       end < numbers.length &&
       numbers[end] - numbers[end - 1] === step
@@ -118,13 +118,10 @@ function convertFromBase(numberStr: string, base: number, digits: string[], cach
     return cached;
   }
 
-  const digitMap: Map<string, number> = new Map(
-    digits.map((digit, index) => [digit, index])
-  );
-
   let result: number = 0;
+  let digitValue;
   for (const char of numberStr) {
-    const digitValue = digitMap.get(char);
+    digitValue = cache.get(char);
     if (digitValue === undefined) {
       throw new Error(`Invalid character ${char} in number string`);
     }
@@ -143,8 +140,9 @@ export function serializeSet(numbers: number[]) {
     const result: string[] = [];
     let isPivotSet = false;
     let sequence;
+    let num;
     for (let index = 0; index < arr.length;) {
-        const num = arr[index];
+        num = arr[index];
         if (!isPivotSet && num >= RADIX) {
             result.push(DIVIDER);
             isPivotSet = true;
