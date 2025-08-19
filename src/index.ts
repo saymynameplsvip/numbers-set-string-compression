@@ -4,6 +4,9 @@ const DIVIDER = "~"
 const SEQUENCE_SYMBOL = "$";
 const PROGRESSION_SYMBOL = "#";
 
+const baseToNumberCache: Map<string, number> = new Map();
+const numberToBaseCache: Map<number, string> = new Map();
+
 function findDuplicateSequences(numbers: number[]) {
     const sequences: Map<number, { value: number, length: number }> = new Map();
 
@@ -71,12 +74,17 @@ function findProgressionSequences(numbers: number[]) {
   return sequences;
 }
 
-function convertToBase(number: number, base: number, digits: string[]): string {
+function convertToBase(number: number, base: number, digits: string[], cache: Map<number, string> = numberToBaseCache): string {
   if (!Number.isInteger(number) || number < 1) {
     throw new Error("Number must be a non-negative integer");
   }
   if (!Number.isInteger(base) || base < 2 || base > digits.length) {
     throw new Error("Base must be an integer between 2 and the length of digits array");
+  }
+
+  const cached = cache.get(number);
+  if (cached) {
+    return cached;
   }
 
   if (number === 1) {
@@ -91,15 +99,23 @@ function convertToBase(number: number, base: number, digits: string[]): string {
     num = Math.floor(num / base);
   }
 
-  return result.reverse().join('');
+  const stringResult = result.reverse().join('');
+  cache.set(number, stringResult);
+
+  return stringResult;
 }
 
-function convertFromBase(numberStr: string, base: number, digits: string[]): number {
+function convertFromBase(numberStr: string, base: number, digits: string[], cache: Map<string, number> = baseToNumberCache): number {
   if (typeof numberStr !== 'string' || !numberStr) {
     throw new Error("Number must be a non-empty string");
   }
   if (!Number.isInteger(base) || base < 2 || base > digits.length) {
     throw new Error("Base must be an integer between 2 and the length of digits array");
+  }
+
+  const cached = cache.get(numberStr);
+  if (cached) {
+    return cached;
   }
 
   const digitMap: Map<string, number> = new Map(
@@ -114,7 +130,7 @@ function convertFromBase(numberStr: string, base: number, digits: string[]): num
     }
     result = result * base + digitValue;
   }
-
+  cache.set(numberStr, result);
   return result;
 }
 
@@ -188,7 +204,7 @@ export function deserializeSet(str: string) {
             result.push(convertFromBase(str[i], RADIX, ALPHABET))
             i++;
         } else {
-            result.push(convertFromBase(str.slice(i, i + 2), RADIX, ALPHABET));
+            result.push(convertFromBase(str.slice(i, i + 2), RADIX, ALPHABET))
             i += 2;
         }
     }
