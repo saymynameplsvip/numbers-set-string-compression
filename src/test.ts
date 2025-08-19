@@ -28,13 +28,16 @@ const testCases: { name: string; data: number[] }[] = [
 
 describe("compression algorithm", () => {
     testCases.forEach(({ name, data }) => {
+
+        let serialized,deserialized,naiveSerialized,compressionRate;
+
         test(name, () => {
             data = data.sort((a,b) => a - b);
-            const serialized = serializeSet(data);
-            const deserialized = deserializeSet(serialized);
-            const naiveSerialized = naiveSerialization(data);
+            serialized = serializeSet(data);
+            deserialized = deserializeSet(serialized);
+            naiveSerialized = naiveSerialization(data);
 
-            const compressionRate = naiveSerialized.length / serialized.length;
+            compressionRate = naiveSerialized.length / serialized.length;
             console.log(`${name}, compression rate is: ${compressionRate}`);
 
             expect(deserialized).toStrictEqual(data);
